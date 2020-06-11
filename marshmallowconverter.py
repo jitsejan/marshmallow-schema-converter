@@ -5,38 +5,40 @@ import json
 class MarshmallowConverter:
     """ Defines the MarshmallowConverter class """
 
-    def __init__(self, inputdata):
-        self._input = self._set_input_data(inputdata)
+    def __init__(self, name, inputfile):
+        self._name = name
+        self._input = self._set_input_data(inputfile)
         self._schemas = []
         self._schemas_output = ""
+
+    def convert(self):
         self._output = f"""from marshmallow import Schema, fields
 
-class ProspectSchema(Schema):
+class {self.name.upper()}Schema(Schema):
 """
         self._output += self.data_to_schema(self.input)
 
     def write_output(self, outputfile):
-        with open(outputfile, "w") as fo:
-            fo.write(self.output)
-            fo.write(self.schemas_output)
+        try:
+            with open(outputfile, "w") as fo:
+                fo.write(self.output)
+                fo.write(self.schemas_output)
+        except FileNotFoundError as err:
+            print("ERROR")
 
-    def data_to_schema(self, inputdata, key="prospect"):
+    def data_to_schema(self, inputdata):
         out = ""
         if isinstance(inputdata, list):
             data = inputdata[0]
         else:
             data = inputdata
-        # Iterate
         for key, value in data.items():
-            # print(key, value)
             add = f"\t{key} = {self.get_type(key, value)}"
             out += add + "\n"
         return out
 
     def get_type(self, key, value):
         out = "fields."
-        if key == "is_dynamic":
-            print(value, type(value))
         if isinstance(value, str):
             out += "Str("
         elif isinstance(value, bool):
@@ -60,10 +62,8 @@ class ProspectSchema(Schema):
     def create_schema(self, key, value):
         schema_name = self.get_schema_name(key)
         if schema_name in self.schemas:
-            print(f">>> Skipping {schema_name}")
-            return ""
+            return
         else:
-            print(f">>> Creating schema for {schema_name}")
             self.schemas.append(schema_name)
             schema = f"\nclass {schema_name}(Schema):\n"
             if isinstance(value, dict):
@@ -76,8 +76,11 @@ class ProspectSchema(Schema):
 
     @staticmethod
     def _set_input_data(inputfile):
-        with open(inputfile, "r") as fh:
-            data = json.loads(fh.read())
+        try:
+            with open(inputfile, "r") as fh:
+                data = json.loads(fh.read())
+        except Exception as err:
+            raise Exception('Please verify input file! ({})'.format(err)) from None
         if isinstance(data, list):
             # If data is a list, create the schema for the first item
             data = data[0]
@@ -86,6 +89,10 @@ class ProspectSchema(Schema):
     @property
     def input(self):
         return self._input
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def output(self):
@@ -110,13 +117,3 @@ class ProspectSchema(Schema):
     @schemas_output.setter
     def schemas_output(self, value):
         self._schemas_output = value
-
-
-conv = MarshmallowConverter("prospect.json")
-conv.write_output("ProspectOutputSchema.py")
-
-
-with open("prospect.json", "r") as fh:
-    data = json.loads(fh.read())
-from ProspectOutputSchema import ProspectSchema
-print(ProspectSchema(many=True).load(data))
