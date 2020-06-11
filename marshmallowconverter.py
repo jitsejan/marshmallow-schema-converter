@@ -23,7 +23,6 @@ class ProspectSchema(Schema):
     def data_to_schema(self, inputdata, key="prospect"):
         out = ""
         if isinstance(inputdata, list):
-            print("inputdata is a list")
             data = inputdata[0]
         else:
             data = inputdata
@@ -32,17 +31,18 @@ class ProspectSchema(Schema):
             # print(key, value)
             add = f"\t{key} = {self.get_type(key, value)}"
             out += add + "\n"
-            print("> ", key, value, add)
         return out
 
     def get_type(self, key, value):
         out = "fields."
+        if key == "is_dynamic":
+            print(value, type(value))
         if isinstance(value, str):
             out += "Str("
-        elif isinstance(value, int):
-            out += "Int("
         elif isinstance(value, bool):
             out += "Bool("
+        elif isinstance(value, int):
+            out += "Int("
         elif isinstance(value, dict):
             out += f"Nested(lambda: {self.get_schema_name(key)}()"
             self.create_schema(key, value)
@@ -59,9 +59,8 @@ class ProspectSchema(Schema):
         
     def create_schema(self, key, value):
         schema_name = self.get_schema_name(key)
-        print(">>", key, value, schema_name, schema_name in self.schemas)
         if schema_name in self.schemas:
-            print(f"Skip {schema_name}")
+            print(f">>> Skipping {schema_name}")
             return ""
         else:
             print(f">>> Creating schema for {schema_name}")
