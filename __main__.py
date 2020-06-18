@@ -32,7 +32,8 @@ def main():
     converter = MarshmallowConverter(**params)
     # Convert the JSON to a schema
     converter.convert()
-
+    # Write output
+    converter.write_output(f"{args.name}_schema.py")
 
 if __name__ == "__main__":
     main()

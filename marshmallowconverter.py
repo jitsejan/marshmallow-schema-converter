@@ -14,7 +14,7 @@ class MarshmallowConverter:
     def convert(self):
         self._output = f"""from marshmallow import Schema, fields
 
-class {self.name.upper()}Schema(Schema):
+class {self.name.title()}Schema(Schema):
 """
         self._output += self.data_to_schema(self.input)
 
