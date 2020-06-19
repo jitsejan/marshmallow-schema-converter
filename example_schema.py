@@ -1,5 +1,6 @@
 from marshmallow import Schema, fields
 
+
 class ExampleSchema(Schema):
 	character = fields.Str()
 	location = fields.Nested(lambda: LocationSchema())
