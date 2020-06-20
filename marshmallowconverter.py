@@ -21,8 +21,8 @@ class {self.name.title()}Schema(Schema):
     def write_output(self, outputfile):
         try:
             with open(outputfile, "w") as fo:
-                fo.write(self.output)
                 fo.write(self.schemas_output)
+                fo.write(self.output)
         except FileNotFoundError as err:
             print("ERROR")
 
